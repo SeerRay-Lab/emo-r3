@@ -1,0 +1,56 @@
+Dataset Analysis Results for fuyyy74/EmoSet2steps2k (train split)
+======================================================================
+
+Total samples: 2100
+Dataset shape: (2100, 4)
+Columns: ['images', 'problem', 'course_grained', 'answer']
+
+COURSE_GRAINED FIELD:
+Unique values: 3
+Distribution:
+  'positive': 1230 samples (58.57%)
+  'negative': 847 samples (40.33%)
+  'neutral': 23 samples (1.10%)
+
+ANSWER FIELD:
+Unique values: 8
+Distribution:
+  'excitement': 345 samples (16.43%)
+  'amusement': 337 samples (16.05%)
+  'contentment': 291 samples (13.86%)
+  'awe': 272 samples (12.95%)
+  'fear': 244 samples (11.62%)
+  'sadness': 217 samples (10.33%)
+  'disgust': 206 samples (9.81%)
+  'anger': 188 samples (8.95%)
+
+COARSE-GRAINED TO ANSWER MAPPING:
+  'negative' -> ['anger', 'disgust', 'excitement', 'fear', 'sadness']
+  'neutral' -> ['amusement', 'anger', 'awe', 'contentment', 'disgust', 'excitement', 'fear']
+  'positive' -> ['amusement', 'awe', 'contentment', 'excitement']
+
+VALIDATION CHECK:
+WARNING: Found course_grained categories with multiple different answers:
+  'positive' has 4 different answers: ['amusement', 'awe', 'contentment', 'excitement']
+  'negative' has 5 different answers: ['anger', 'disgust', 'excitement', 'fear', 'sadness']
+  'neutral' has 7 different answers: ['amusement', 'anger', 'awe', 'contentment', 'disgust', 'excitement', 'fear']
+
+ALL COMBINATIONS (with counts):
+  ('negative', 'anger') -> 184 samples
+  ('negative', 'disgust') -> 204 samples
+  ('negative', 'excitement') -> 1 samples
+  ('negative', 'fear') -> 241 samples
+  ('negative', 'sadness') -> 217 samples
+  ('neutral', 'amusement') -> 8 samples
+  ('neutral', 'anger') -> 4 samples
+  ('neutral', 'awe') -> 3 samples
+  ('neutral', 'contentment') -> 2 samples
+  ('neutral', 'disgust') -> 2 samples
+  ('neutral', 'excitement') -> 1 samples
+  ('neutral', 'fear') -> 3 samples
+  ('positive', 'amusement') -> 329 samples
+  ('positive', 'awe') -> 269 samples
+  ('positive', 'contentment') -> 289 samples
+  ('positive', 'excitement') -> 343 samples
+
+Total unique combinations: 16

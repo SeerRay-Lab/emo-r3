@@ -1,0 +1,18 @@
+{{ content | trim }}
+
+Your task is to reason through the emotional state expressed in the image using the following structure:
+
+Start by identifying the **emotional valence**: does the emotion conveyed feel clearly positive or clearly negative?
+
+Wrap your reasoning in:
+<valence_thought> ...your reasoning here... </valence_thought>
+
+Then reflect more deeply: taking the visual cues and the emotional tone into account, what specific emotion best describes the image?
+
+Wrap this in:
+<final_thought> ...your final reasoning here... </final_thought>
+
+Finally, provide your answer in this format:
+
+<valence>positive|negative</valence>
+<answer>amusement|anger|awe|contentment|disgust|excitement|fear|sadness</answer>
