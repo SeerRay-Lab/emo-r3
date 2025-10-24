@@ -1,0 +1,44 @@
+{
+    "valence_positive": [
+      "happy", "joyful", "pleased", "smile", "smiling", "laugh", "laughing", "grinning", "giggle",
+      "cheerful", "delighted", "relaxed", "peaceful", "calm", "content", "contented", "satisfied",
+      "loving", "affectionate", "friendly", "hopeful", "grateful", "uplifted", "inspired", "playful",
+      "humorous", "entertaining", "fun", "festive", "celebratory", "enchanted", "admiring",
+      "appreciative", "fascinated", "amazed", "serene", "cozy", "comforted",
+      "bright eyes", "soft eyes", "gentle smile", "relaxed face", "positive expression",
+      "hugging", "embrace", "holding hands", "friendly gesture",
+      "sunset", "garden", "beautiful nature", "friends gathering", "wedding", "birthday",
+      "festival", "amusement park", "peaceful landscape", "cozy home", "warm light"
+    ],
+    "valence_negative": [
+      "sad", "unhappy", "depressed", "cry", "crying", "teary", "heartbroken", "lonely", "melancholy",
+      "sorrow", "grief", "miserable", "tragic", "mournful",
+      "angry", "anger", "furious", "irritated", "rage", "hostile",
+      "afraid", "scared", "terrified", "panicked", "anxious", "threatened", "fearful",
+      "disgusted", "gross", "repulsed", "revolted", "nauseated", "filthy", "dirty", "rotten",
+      "ashamed", "guilty", "regretful", "distressed", "frustrated", "painful", "suffering",
+      "frown", "grimace", "wide eyes in fear", "tense jaw", "clenched teeth", "crying face",
+      "covering face", "turning away", "defensive posture",
+      "fire", "storm", "dark alley", "abandoned place", "trash", "garbage", "injury",
+      "hospital scene", "accident", "crime scene", "protest", "conflict", "dangerous situation"
+    ],
+    "arousal_high": [
+      "excited", "thrilled", "energetic", "bursting", "cheering", "shouting",
+      "jumping", "running", "racing", "celebrating", "intense", "adrenaline",
+      "explosive", "dynamic", "vigorous", "hyperactive", "alert", "startled",
+      "panicking", "attacking", "fighting", "screaming", "dramatic", "electric",
+      "powerful", "urgent", "amped", "rushed",
+      "clapping", "wild dancing", "aggressive gesture", "raising fists", "victory pose",
+      "fireworks", "roller coaster", "concert stage", "sports arena", "crowd cheering",
+      "storm", "explosion", "raging fire", "emergency siren", "chaotic environment"
+    ],
+    "arousal_low": [
+      "calm", "relaxed", "peaceful", "serene", "still", "quiet", "soft",
+      "resting", "meditative", "sleepy", "gentle", "subdued",
+      "low-energy", "tranquil", "soothing", "mellow", "slow", "comfortable",
+      "laid-back", "stable", "silent", "drowsy", "motionless",
+      "sitting quietly", "lying down", "resting posture", "hands folded calmly",
+      "cozy home", "sunset", "empty beach", "calm lake", "library", "quiet room"
+    ]
+  }
+  

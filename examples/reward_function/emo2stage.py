@@ -171,8 +171,8 @@ def compute_log_prob_reward(
 def compute_score(
     reward_inputs: List[Dict[str, Any]],
     format_weight: float = 0.1,
-    valence_weight: float = 0.1,
-    emotion_weight: float = 0.8
+    valence_weight: float = 0.05,
+    emotion_weight: float = 0.85
 ) -> List[Dict[str, float]]:
     """
     Compute reward scores for emotional responses with log probability component.

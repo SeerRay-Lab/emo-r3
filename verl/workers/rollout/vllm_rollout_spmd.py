@@ -299,9 +299,16 @@ class vLLMRollout(BaseRollout):
         )
         if batch_multi_modal_data is not None:
             non_tensor_batch = {"multi_modal_data": batch_multi_modal_data}
+
+            # 待修改的地方 出现了维度不一致的错误
+            try:
+                images = [item.get("images", None) for item in batch_multi_modal_data]
+                non_tensor_batch["images"] = np.array(images, dtype=object)
+            except Exception as e:
+                print(f"[Warning] multi_modal_data has no 'images' field: {e}")
         else:
             non_tensor_batch = {}
-        
+
         # Add logprobs to non_tensor_batch if available
         if response_logprobs and any(lp is not None for lp in response_logprobs):
             non_tensor_batch["logprobs"] = response_logprobs

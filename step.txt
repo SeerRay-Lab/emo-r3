@@ -1,5 +1,5 @@
-# source /vlm-ssd/fangyiyang/venv/easyr1/bin/activate
-source /vlm-ssd/fangyiyang/venv/emor1/bin/activate
+source /vlm-ssd/fangyiyang/venv/easyr1/bin/activate
+# source /vlm-ssd/fangyiyang/venv/emor1/bin/activate
 
 # lj
 export http_proxy="http://10.224.125.58:8022"
@@ -21,3 +21,7 @@ pip install --no-cache-dir "vllm==0.8.4" "torch==2.6.0" "torchvision==0.21.0" "t
 
 pip install /vlm-ssd/fangyiyang/EasyR1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
 pip install /vlm-ssd/fangyiyang/EasyR1/flashinfer_python-0.2.2.post1+cu124torch2.6-cp38-abi3-linux_x86_64.whl
+
+# merge
+python3 scripts/model_merger.py \
+  --local_dir /mnt/vlm-ks3/fangyiyang/emo_ckpt/qwen2_5_vl_3b_emoset_8_grpo_emothink_cot/global_step_60/actor

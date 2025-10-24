@@ -8,14 +8,16 @@ export WANDB_API_KEY=0aedaabc5db114ea5922799978efb09dc1d52b63
 export WANDB_DIR=/vlm-ssd/fangyiyang/easyr1_emo/wandb_log
 export WANDB_ENTITY=fuyyy-wuhan-university
 
+export CUDA_VISIBLE_DEVICES=2,3
+
 export RAY_TMPDIR=/vlm-ssd/fangyiyang/tmp_ray
 mkdir -p $RAY_TMPDIR
 
 ROLLOUT_NUMBER=8
-TRAING_EPOCH=20
+TRAING_EPOCH=15
 # MODEL_PATH=Qwen/Qwen2.5-VL-3B-Instruct  # replace it with your local file path
 MODEL_PATH=/mnt/vlm-ks3/fangyiyang/model/Qwen2.5-VL-3B-Instruct
-EXPERIMENT_NAME=qwen2_5_vl_3b_emoset_${ROLLOUT_NUMBER}_grpo_emo2stage
+EXPERIMENT_NAME=qwen2_5_vl_3b_emoset_${ROLLOUT_NUMBER}_grpo_emo2stage_0.05_0.85
 CHECKPONT_PATH=/mnt/vlm-ks3/fangyiyang/emo_ckpt/${EXPERIMENT_NAME}/
 
 python3 -m verl.trainer.main \
@@ -27,7 +29,7 @@ python3 -m verl.trainer.main \
     worker.rollout.n=${ROLLOUT_NUMBER} \
     worker.rollout.logprobs=null \
     worker.reward.reward_function=./examples/reward_function/emo2stage.py:compute_score \
-    trainer.n_gpus_per_node=8 \
+    trainer.n_gpus_per_node=2 \
     trainer.total_epochs=${TRAING_EPOCH} \
     trainer.experiment_name=${EXPERIMENT_NAME} \
     trainer.save_checkpoint_path=${CHECKPONT_PATH}

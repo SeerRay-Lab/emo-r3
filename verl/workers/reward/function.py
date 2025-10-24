@@ -103,6 +103,11 @@ class SequentialFunctionRewardManager(FunctionRewardManager):
             # Pass logprobs if available
             if "logprobs" in data.non_tensor_batch:
                 reward_input["logprobs"] = data.non_tensor_batch["logprobs"][i]
+
+
+            # 待修改的地方 出现了维度不一致的错误
+            reward_input["images"] = data.non_tensor_batch["images"][i]
+
             score = self.reward_fn(reward_input)
             reward_tensor[i, response_length[i] - 1] = score["overall"]
             for key, value in score.items():
@@ -136,6 +141,10 @@ class BatchFunctionRewardManager(FunctionRewardManager):
             # Pass logprobs if available
             if "logprobs" in data.non_tensor_batch:
                 reward_input["logprobs"] = data.non_tensor_batch["logprobs"][i]
+
+            # 待修改的地方 出现了维度不一致的错误
+            reward_input["images"] = data.non_tensor_batch["images"][i]
+            
             reward_inputs.append(reward_input)
 
         scores = self.reward_fn(reward_inputs)
