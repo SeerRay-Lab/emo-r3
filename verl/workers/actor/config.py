@@ -98,6 +98,7 @@ class ActorConfig:
     """use padding-free training"""
     ulysses_size: int = 1
     """ulysses sequence parallel size"""
+    is_rethink: bool = False
     use_torch_compile: bool = True
     model: ModelConfig = field(default_factory=ModelConfig)
     optim: OptimConfig = field(default_factory=OptimConfig)

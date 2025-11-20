@@ -11,7 +11,7 @@ export https_proxy="https://192.168.31.67:8022"
 curl --proxy http://192.168.31.67:8022 http://ipinfo.io
 
 # install environment
-python3.10 -m venv easyr1
+python3.10 -m venv /vlm-ssd/fangyiyang/venv/easyr1
 
 pip install --no-cache-dir "vllm==0.8.4" "torch==2.6.0" "torchvision==0.21.0" "torchaudio==2.6.0" "tensordict==0.9.1" torchdata \
     "transformers[hf_xet]==4.52.4" accelerate datasets peft hf-transfer \
@@ -25,3 +25,9 @@ pip install /vlm-ssd/fangyiyang/EasyR1/flashinfer_python-0.2.2.post1+cu124torch2
 # merge
 python3 scripts/model_merger.py \
   --local_dir /mnt/vlm-ks3/fangyiyang/emo_ckpt/qwen2_5_vl_3b_emoset_8_grpo_emothink_cot/global_step_60/actor
+
+
+# github upload
+git add .
+git commit -m "update"
+git push origin main

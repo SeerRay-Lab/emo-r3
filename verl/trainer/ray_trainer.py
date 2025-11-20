@@ -31,6 +31,7 @@ import torch
 from ray.experimental.tqdm_ray import tqdm
 from torchdata.stateful_dataloader import StatefulDataLoader
 from transformers import PreTrainedTokenizer, ProcessorMixin
+import re
 
 from ..protocol import DataProto, pad_dataproto_to_divisor, unpad_dataproto
 from ..single_controller.base import Worker
@@ -47,6 +48,8 @@ from . import core_algos
 from .config import PPOConfig
 from .core_algos import AdvantageEstimator, FixedKLController, KLController, compute_kl, get_kl_controller
 from .metrics import compute_data_metrics, compute_throughout_metrics, compute_timing_metrics, reduce_metrics
+from .data_loader import create_rethink_dataloader
+
 
 
 class Role(IntEnum):
@@ -536,6 +539,86 @@ class RayPPOTrainer:
 
                 return batch[: self.config.data.rollout_batch_size * self.config.worker.rollout.n]
 
+    def extract_steps(self, text: str) -> str:
+        match = re.search(r"(<step1>.*?</step2>)", text, re.DOTALL)
+        return match.group(1).strip() if match else ""
+    
+    def extract_step1_to_step2(self, text: str) -> str:
+        # 正则表达式：匹配从 <step1> 到 <step2> 之间的内容，包括 <step1> 但不包括 <step2>
+        match = re.search(r"(<step1>.*?)(?=<step2>)", text, re.DOTALL)
+        return match.group(1).strip() if match else ""
+
+    def _rethink_batch(self, batch: DataProto, rethink_prompt_template: str, mode: str) -> DataProto:
+        # 1) 解码原始文本
+        input_ids = batch.batch["prompts"]
+        output_ids = batch.batch["responses"]
+        # input_texts = [self.tokenizer.decode(ids, skip_special_tokens=True) for ids in input_ids]
+        response_texts = [self.tokenizer.decode(ids, skip_special_tokens=True) for ids in output_ids]
+
+        # 2) 构造反思文本
+        if mode == "think_answer":
+            rethink_prompts_text = [
+                {
+                    "problem": (
+                        rethink_prompt_template.format(response=resp)
+                        if resp else "Answer 'None'"
+                    ),
+                    "answer": None  # 都是 None，但逻辑明确
+                }
+                for r in response_texts
+                for resp in [self.extract_steps(r)]  # 先提取 resp，避免重复调用
+            ]
+        elif mode == "image_think":
+            rethink_prompts_text = [
+                {
+                    "image": image,
+                    "problem": (
+                        rethink_prompt_template.format(response=resp)
+                        if resp else "Answer 'None'"
+                    ),
+                    "answer": None  # 都是 None，但逻辑明确
+                }
+                for r, image in zip(response_texts, batch.non_tensor_batch["raw_images"]) 
+                for resp in [self.extract_step1_to_step2(r)]  # 先提取 resp，避免重复调用
+            ]
+
+        rethink_dataloader = create_rethink_dataloader(self.config.data, self.tokenizer, self.processor, rethink_prompts_text)
+
+        print("Start rethinking...")
+        rethink_answer = None
+        self.actor_rollout_ref_wg.prepare_rollout_engine()
+        for batch_dict in rethink_dataloader:
+            rethink_batch = DataProto.from_single_dict(batch_dict)
+            rethink_gen_batch = rethink_batch.pop(
+                batch_keys=["input_ids", "attention_mask", "position_ids"],
+                non_tensor_batch_keys=["raw_prompt_ids", "multi_modal_data"],
+            )
+            repeat_times = 1
+            rethink_gen_batch.meta_info = self.config.worker.rollout.val_override_config
+            rethink_gen_batch.meta_info["min_pixels"] = self.config.data.min_pixels
+            rethink_gen_batch.meta_info["max_pixels"] = self.config.data.max_pixels
+            rethink_gen_batch.meta_info["video_fps"] = self.config.data.video_fps
+
+            rethink_gen_batch, pad_size = pad_dataproto_to_divisor(rethink_gen_batch, self.actor_rollout_ref_wg.world_size)
+            rethink_output_gen_batch = self.actor_rollout_ref_wg.generate_sequences(rethink_gen_batch)
+            rethink_output_gen_batch = unpad_dataproto(rethink_output_gen_batch, pad_size=pad_size * repeat_times)
+
+            # repeat to align with repeated responses in rollout
+            rethink_batch = rethink_batch.repeat(repeat_times=repeat_times, interleave=True)
+            rethink_batch = rethink_batch.union(rethink_output_gen_batch)
+
+            # store generations
+            input_ids = rethink_batch.batch["prompts"]
+            input_texts = [self.tokenizer.decode(ids, skip_special_tokens=True) for ids in input_ids]
+            output_ids = rethink_batch.batch["responses"]
+            output_texts = [self.tokenizer.decode(ids, skip_special_tokens=True) for ids in output_ids]
+
+            rethink_answer = rethink_answer + output_texts if rethink_answer is not None else output_texts
+
+        self.actor_rollout_ref_wg.release_rollout_engine()
+        return rethink_answer
+
+
     def fit(self):
         """
         The training loop of PPO.
@@ -553,11 +636,11 @@ class RayPPOTrainer:
 
         # perform validation before training
         # currently, we only support validation using the reward_function.
-        if self.val_reward_fn is not None and self.config.trainer.val_before_train:
-            val_metrics = self._validate()
-            self.logger.log(data=val_metrics, step=self.global_step)
-            if self.config.trainer.val_only:
-                return
+        # if self.val_reward_fn is not None and self.config.trainer.val_before_train:
+        #     val_metrics = self._validate()
+        #     self.logger.log(data=val_metrics, step=self.global_step)
+        #     if self.config.trainer.val_only:
+        #         return
 
         self.data_iterator = iter(self.train_dataloader)
         while self.global_step < self.training_steps:
@@ -578,6 +661,32 @@ class RayPPOTrainer:
 
                 # compute global valid tokens
                 batch.meta_info["global_token_num"] = torch.sum(batch.batch["attention_mask"], dim=-1).tolist()
+
+                # --- NEW: 调用 rethink ---
+                rethink_prompt_template = (
+                    "{response}\n"
+                    "Which emotion best describes the text above?\n"
+                    "Answer the question using one emotional category (one word only): "
+                    "amusement, anger, awe, contentment, disgust, excitement, fear, sadness."
+                )
+                # rethink_prompt_template = (
+                #     "{response}\n"
+                #     "Which emotion best describes the text above?\n"
+                #     "Answer the question using one emotional category (one word only): "
+                #     "anger, disgust, fear, joy, sadness, surprise."
+                # )
+                rethink_result = self._rethink_batch(batch, rethink_prompt_template, mode="think_answer")
+                batch.batch.update({"rethink_result": rethink_result})
+
+                rethink_prompt_template_image = (
+                    "<image>\n"
+                    "Can the following text describe the image?"
+                    "Please answer with yes or no."
+                    "{response}"
+                )
+                rethink_result_image = self._rethink_batch(batch, rethink_prompt_template_image, mode="image_think")
+                batch.batch.update({"rethink_result_image": rethink_result_image})
+        
 
                 # compute reward
                 if "token_level_scores" not in batch.batch:

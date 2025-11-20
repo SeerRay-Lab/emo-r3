@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
-from datasets import load_dataset
+from datasets import load_dataset, Dataset as HFDataset
 from jinja2 import Template
 from PIL import Image
 from PIL.Image import Image as ImageObject
@@ -110,6 +110,8 @@ class RLHFDataset(Dataset):
         max_pixels: Optional[int] = None,
         filter_overlong_prompts: bool = True,
         filter_overlong_prompts_workers: int = 16,
+        data_list: list = None,
+        is_path: bool = True,
     ):
         self.tokenizer = tokenizer
         self.processor = processor
@@ -126,33 +128,41 @@ class RLHFDataset(Dataset):
         self.min_pixels = min_pixels
         self.max_pixels = max_pixels
 
-        if "@" in data_path:
-            data_path, data_split = data_path.split("@")
+        if is_path:
+            if "@" in data_path:
+                data_path, data_split = data_path.split("@")
+            else:
+                data_split = "train"
+
+            if os.path.isdir(data_path):
+                # when we use dataset builder, we should always refer to the train split
+                file_type = os.path.splitext(os.listdir(data_path)[0])[-1][1:].replace("jsonl", "json")
+                self.dataset = load_dataset(file_type, data_dir=data_path, split=data_split)
+            elif os.path.isfile(data_path):
+                file_type = os.path.splitext(data_path)[-1][1:].replace("jsonl", "json")
+                self.dataset = load_dataset(file_type, data_files=data_path, split=data_split)
+            else:
+                # load remote dataset from huggingface hub
+                self.dataset = load_dataset(data_path, split=data_split)
+
+            self.format_prompt = None
+            if format_prompt:
+                with open(format_prompt, encoding="utf-8") as f:
+                    self.format_prompt = f.read()
+
+            if self.image_key in self.dataset[0]:
+               self.raw_images = [ex[self.image_key] for ex in self.dataset]
+
+            if filter_overlong_prompts:
+                self.dataset = self.dataset.filter(
+                    self._filter_overlong_prompts,
+                    desc="Filtering overlong prompts",
+                    num_proc=filter_overlong_prompts_workers,
+                )
+
         else:
-            data_split = "train"
-
-        if os.path.isdir(data_path):
-            # when we use dataset builder, we should always refer to the train split
-            file_type = os.path.splitext(os.listdir(data_path)[0])[-1][1:].replace("jsonl", "json")
-            self.dataset = load_dataset(file_type, data_dir=data_path, split=data_split)
-        elif os.path.isfile(data_path):
-            file_type = os.path.splitext(data_path)[-1][1:].replace("jsonl", "json")
-            self.dataset = load_dataset(file_type, data_files=data_path, split=data_split)
-        else:
-            # load remote dataset from huggingface hub
-            self.dataset = load_dataset(data_path, split=data_split)
-
-        self.format_prompt = None
-        if format_prompt:
-            with open(format_prompt, encoding="utf-8") as f:
-                self.format_prompt = f.read()
-
-        if filter_overlong_prompts:
-            self.dataset = self.dataset.filter(
-                self._filter_overlong_prompts,
-                desc="Filtering overlong prompts",
-                num_proc=filter_overlong_prompts_workers,
-            )
+            self.dataset = data_list
+            self.format_prompt = None
 
     def _build_messages(self, example: Dict[str, Any]) -> List[Dict[str, Any]]:
         prompt_str: str = example[self.prompt_key]
@@ -226,6 +236,7 @@ class RLHFDataset(Dataset):
         if self.image_key in example:
             prompt = self.processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
             images = example.pop(self.image_key)
+
             if self.image_dir is not None and len(images) != 0 and isinstance(images[0], str):  # image paths
                 images = [os.path.join(self.image_dir, image) for image in images]
 
@@ -237,6 +248,8 @@ class RLHFDataset(Dataset):
             input_ids = model_inputs.pop("input_ids")[0]
             attention_mask = model_inputs.pop("attention_mask")[0]
             example["multi_modal_data"] = {"images": images}
+            example["raw_images"] = self.raw_images[index]
+            
         elif self.video_key in example:
             prompt = self.processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
             videos = example.pop(self.video_key)

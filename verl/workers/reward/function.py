@@ -107,6 +107,15 @@ class SequentialFunctionRewardManager(FunctionRewardManager):
 
             # 待修改的地方 出现了维度不一致的错误
             reward_input["images"] = data.non_tensor_batch["images"][i]
+            if "rethink_result" in data.batch:
+                reward_input["rethink_result"] = data.batch["rethink_result"][i]
+            else:
+                reward_input["rethink_result"] = None  # 或者默认值
+
+            if "rethink_result_image" in data.batch:
+                reward_input["rethink_result_image"] = data.batch["rethink_result_image"][i]
+            else:
+                reward_input["rethink_result_image"] = None  # 或者默认值
 
             score = self.reward_fn(reward_input)
             reward_tensor[i, response_length[i] - 1] = score["overall"]
@@ -144,6 +153,15 @@ class BatchFunctionRewardManager(FunctionRewardManager):
 
             # 待修改的地方 出现了维度不一致的错误
             reward_input["images"] = data.non_tensor_batch["images"][i]
+            if "rethink_result" in data.batch:
+                reward_input["rethink_result"] = data.batch["rethink_result"][i]
+            else:
+                reward_input["rethink_result"] = None  # 或者默认值
+
+            if "rethink_result_image" in data.batch:
+                reward_input["rethink_result_image"] = data.batch["rethink_result_image"][i]
+            else:
+                reward_input["rethink_result_image"] = None  # 或者默认值
             
             reward_inputs.append(reward_input)
 

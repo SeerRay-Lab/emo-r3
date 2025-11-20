@@ -13,4 +13,12 @@ export https_proxy="http://10.224.125.58:8022"
 
 # bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_3b_emothink_new_grpo.sh
 
-bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_3b_emothink_new_template_grpo.sh
+# bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_3b_emothink_new_template_grpo.sh
+
+# bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_3b_emothink_new_rethink.sh
+
+# bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_3b_emothink_new_rethink_image.sh
+
+# bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_3b_emothink_new_rethink_image_emotion6.sh
+
+bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_7b_emothink_new_rethink_image.sh

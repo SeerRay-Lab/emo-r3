@@ -40,6 +40,7 @@ worker:
     max_grad_norm: 1.0
     padding_free: true
     ulysses_size: 1
+    is_rethink: false
     model:
       model_path: Qwen/Qwen2.5-7B-Instruct
       enable_gradient_checkpointing: true
@@ -89,7 +90,8 @@ worker:
 trainer:
   total_epochs: 15
   max_steps: null
-  project_name: easy_r1_1011_emo
+  project_name: emoset_r1
+  # project_name: emoset_r1
   experiment_name: qwen2_5_7b_math_grpo
   logger: ["console", "wandb"]
   # logger: ["console"]

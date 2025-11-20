@@ -105,3 +105,43 @@ def create_dataloader(config: DataConfig, tokenizer: PreTrainedTokenizer, proces
     print(f"Size of train dataloader: {len(train_dataloader)}")
     print(f"Size of val dataloader: {len(val_dataloader)}")
     return train_dataloader, val_dataloader
+
+def create_rethink_dataloader(config: DataConfig, tokenizer: PreTrainedTokenizer, processor: Optional[ProcessorMixin], data_list: list) -> None:
+    val_dataset = RLHFDataset(
+        data_path=None,
+        tokenizer=tokenizer,
+        processor=processor,
+        prompt_key=config.prompt_key,
+        answer_key=config.answer_key,
+        coarse_answer_key=config.coarse_answer_key,
+        intensity_answer_key=config.intensity_answer_key,
+        image_key=config.image_key,
+        image_dir=config.image_dir,
+        max_prompt_length=config.max_prompt_length,
+        truncation="right",
+        format_prompt=config.format_prompt,
+        min_pixels=config.min_pixels,
+        max_pixels=config.max_pixels,
+        filter_overlong_prompts=config.filter_overlong_prompts,
+        data_list = data_list,
+        is_path = False,
+    )
+
+    if config.val_batch_size == -1:
+        val_batch_size = len(val_dataset)
+    else:
+        val_batch_size = config.val_batch_size
+
+    val_dataloader = StatefulDataLoader(
+        dataset=val_dataset,
+        batch_size=val_batch_size,
+        shuffle=False,
+        num_workers=8,
+        collate_fn=collate_fn,
+        pin_memory=False,
+        drop_last=False,
+    )
+
+    assert len(val_dataloader) >= 1
+    print(f"Size of rethink dataloader: {len(val_dataloader)}")
+    return val_dataloader
