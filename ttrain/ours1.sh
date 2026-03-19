@@ -1,24 +1,9 @@
-source /vlm-ssd/fangyiyang/venv/easyr1/bin/activate
+source /vlm-ssd/fangyiyang/venv/autostep/bin/activate
 
-cd /vlm-ssd/fangyiyang/easyr1_emo
+cd /vlm-ssd/fangyiyang/EasyR1
 
 export http_proxy="http://10.224.125.58:8022"
 export https_proxy="http://10.224.125.58:8022"
 
-# bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/qwen2_5_vl_3b_emo_prob_grpo.sh
-
-# bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/qwen2_5_vl_3b_naive_grpo.sh
-
-# bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/qwen2_5_vl_3b_emo_2stage_grpo.sh
-
-# bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_3b_emothink_new_grpo.sh
-
-# bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_3b_emothink_new_template_grpo.sh
-
-# bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_3b_emothink_new_rethink.sh
-
-# bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_3b_emothink_new_rethink_image.sh
-
-# bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_3b_emothink_new_rethink_image_emotion6.sh
-
-bash /vlm-ssd/fangyiyang/easyr1_emo/examples/fyy/new/qwen2_5_vl_7b_emothink_new_rethink_image.sh
+# bash /vlm-ssd/fangyiyang/EasyR1/examples/qwen3_4b_naive_geo3k.sh
+bash /vlm-ssd/fangyiyang/EasyR1/examples/qwen3_4b_naive_emo.sh

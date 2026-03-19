@@ -163,6 +163,9 @@ class RLHFDataset(Dataset):
         else:
             self.dataset = data_list
             self.format_prompt = None
+            if self.image_key in self.dataset[0]:
+               self.raw_images = [ex[self.image_key] for ex in self.dataset]
+
 
     def _build_messages(self, example: Dict[str, Any]) -> List[Dict[str, Any]]:
         prompt_str: str = example[self.prompt_key]

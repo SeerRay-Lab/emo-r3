@@ -571,10 +571,10 @@ class RayPPOTrainer:
         elif mode == "image_think":
             rethink_prompts_text = [
                 {
-                    "image": image,
+                    "images": image,
                     "problem": (
                         rethink_prompt_template.format(response=resp)
-                        if resp else "Answer 'None'"
+                        if resp else "<image>\nAnswer 'None'"
                     ),
                     "answer": None  # 都是 None，但逻辑明确
                 }
@@ -593,6 +593,7 @@ class RayPPOTrainer:
                 batch_keys=["input_ids", "attention_mask", "position_ids"],
                 non_tensor_batch_keys=["raw_prompt_ids", "multi_modal_data"],
             )
+
             repeat_times = 1
             rethink_gen_batch.meta_info = self.config.worker.rollout.val_override_config
             rethink_gen_batch.meta_info["min_pixels"] = self.config.data.min_pixels
@@ -600,6 +601,7 @@ class RayPPOTrainer:
             rethink_gen_batch.meta_info["video_fps"] = self.config.data.video_fps
 
             rethink_gen_batch, pad_size = pad_dataproto_to_divisor(rethink_gen_batch, self.actor_rollout_ref_wg.world_size)
+            
             rethink_output_gen_batch = self.actor_rollout_ref_wg.generate_sequences(rethink_gen_batch)
             rethink_output_gen_batch = unpad_dataproto(rethink_output_gen_batch, pad_size=pad_size * repeat_times)
 

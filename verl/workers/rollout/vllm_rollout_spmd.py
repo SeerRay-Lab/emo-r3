@@ -198,67 +198,6 @@ class vLLMRollout(BaseRollout):
                 response_ids, self.pad_token_id, max_length=self.config.response_length
             ).to(input_ids.device)
             
-            # Extract logprobs if available
-            response_logprobs = []
-            for completion_idx, completion in enumerate(completions):
-                for output_idx, output in enumerate(completion.outputs):
-                    if output.logprobs is not None:
-                        # Debug: Print first few positions
-                        # if completion_idx < 3:  # Show first 3 completions
-                        #     print(f"\n=== Debug vLLM logprobs extraction (completion {completion_idx}, output {output_idx}) ===")
-                        #     print(f"Number of positions with logprobs: {len(output.logprobs)}")
-                        #     print(f"Number of generated tokens: {len(output.token_ids)}")
-                        #     print(f"Generated tokens: {output.token_ids[:10]}...")  # First 10
-                        #     tokenizer = self.inference_engine.get_tokenizer()
-                        #     print(f"Generated text preview: {tokenizer.decode(output.token_ids[:20])[:50]}...")
-                            
-                        # Extract token logprobs and top logprobs
-                        token_logprobs = []
-                        top_logprobs = []
-                        for i, logprob_info in enumerate(output.logprobs):
-                            # Get the token ID that was actually generated at this position
-                            generated_token_id = output.token_ids[i]
-                            
-                            # Debug first few positions
-                            # if completion_idx < 3 and i < 5:
-                            #     print(f"\nCompletion {completion_idx}, Position {i}:")
-                            #     print(f"  Generated token ID: {generated_token_id}")
-                            #     print(f"  Number of top tokens: {len(logprob_info)}")
-                            #     # Show top 5 tokens at this position
-                            #     sorted_probs = sorted(logprob_info.items(), key=lambda x: x[1].logprob, reverse=True)[:5]
-                            #     for j, (tid, lp) in enumerate(sorted_probs):
-                            #         tokenizer = self.inference_engine.get_tokenizer()
-                            #         decoded = tokenizer.decode([tid])
-                            #         print(f"    Top-{j+1}: token_id={tid}, logprob={lp.logprob:.4f}, decoded='{decoded}'")
-                            
-                            # logprob_info is a dict mapping token_id -> Logprob object
-                            if generated_token_id in logprob_info:
-                                token_logprobs.append(logprob_info[generated_token_id].logprob)
-                            else:
-                                # This shouldn't happen, but handle it gracefully
-                                # print(f"WARNING: Generated token {generated_token_id} not in logprob_info at position {i}")
-                                token_logprobs.append(-float('inf'))
-                            # Extract top-k logprobs as a dict
-                            top_probs_dict = {str(token_id): lp.logprob for token_id, lp in logprob_info.items()}
-                            top_logprobs.append(top_probs_dict)
-                            
-                        response_logprobs.append({
-                            "token_logprobs": token_logprobs,
-                            "top_logprobs": top_logprobs,
-                            "token_ids": output.token_ids  # Add the actual generated token IDs
-                        })
-                        
-                        # if completion_idx < 3:
-                        #     print(f"\nExtracted {len(token_logprobs)} token logprobs")
-                        #     # Print a hash of the logprobs to see if they're the same across different completions
-                        #     import hashlib
-                        #     logprobs_str = str(sorted(top_logprobs[0].items())[:5]) if top_logprobs else "empty"
-                        #     hash_val = hashlib.md5(logprobs_str.encode()).hexdigest()[:8]
-                        #     print(f"First position top-5 hash: {hash_val}")
-                        #     print(f"=== End Debug vLLM ===\n")
-                    else:
-                        response_logprobs.append(None)
-
             if self.sampling_params.n > 1:
                 batch_size = batch_size * self.sampling_params.n
                 input_ids = _repeat_interleave(input_ids, self.sampling_params.n)
@@ -308,9 +247,5 @@ class vLLMRollout(BaseRollout):
                 print(f"[Warning] multi_modal_data has no 'images' field: {e}")
         else:
             non_tensor_batch = {}
-
-        # Add logprobs to non_tensor_batch if available
-        if response_logprobs and any(lp is not None for lp in response_logprobs):
-            non_tensor_batch["logprobs"] = response_logprobs
 
         return DataProto(batch=batch, non_tensor_batch=non_tensor_batch, meta_info=prompts.meta_info)

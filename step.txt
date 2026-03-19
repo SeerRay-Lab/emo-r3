@@ -8,7 +8,7 @@ export https_proxy="http://10.224.125.58:8022"
 export http_proxy="http://192.168.31.67:8022"
 export https_proxy="https://192.168.31.67:8022"
 # check
-curl --proxy http://192.168.31.67:8022 http://ipinfo.io
+curl --proxy http://192.168.31.67:8022 
 
 # install environment
 python3.10 -m venv /vlm-ssd/fangyiyang/venv/easyr1
