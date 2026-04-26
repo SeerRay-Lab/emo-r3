@@ -3,6 +3,7 @@ data:
   val_files: hiyouga/math12k@test
   prompt_key: problem
   answer_key: answer
+  coarse_answer_key: course_grained
   image_key: images
   video_key: videos
   image_dir: null
@@ -12,7 +13,7 @@ data:
   rollout_batch_size: 512  # equivalent to verl's data.train_batch_size
   mini_rollout_batch_size: null  # equivalent to verl's data.gen_batch_size
   val_batch_size: 1024
-  format_prompt: ./examples/format_prompt/math.jinja
+  format_prompt: ./examples/format_prompt/emor3.jinja
   override_chat_template: null
   shuffle: true
   seed: 1
@@ -33,12 +34,13 @@ algorithm:
 
 worker:
   actor:
-    global_batch_size: 128  # equivalent to verl's actor.ppo_mini_batch_size
+    global_batch_size: 256  # equivalent to verl's actor.ppo_mini_batch_size
     micro_batch_size_per_device_for_update: 4  # equivalent to verl's actor.ppo_micro_batch_size_per_gpu
     micro_batch_size_per_device_for_experience: 16  # equivalent to verl's rollout.log_prob_micro_batch_size_per_gpu
     max_grad_norm: 1.0
     padding_free: true
     ulysses_size: 1
+    is_rethink: false
     model:
       model_path: Qwen/Qwen2.5-7B-Instruct
       enable_gradient_checkpointing: true
@@ -54,19 +56,21 @@ worker:
       enable_cpu_offload: false
       enable_rank0_init: true
     offload:
-      offload_params: true  # true: more CPU memory; false: more GPU memory
-      offload_optimizer: true  # true: more CPU memory; false: more GPU memory
+      offload_params: false  # true: more CPU memory; false: more GPU memory
+      offload_optimizer: false  # true: more CPU memory; false: more GPU memory
 
   rollout:
-    n: 5
+    n: 8
     temperature: 1.0
     top_p: 1.0
     limit_images: 0
+    max_model_len: 8192
     gpu_memory_utilization: 0.6
     enforce_eager: false
     enable_chunked_prefill: false
     tensor_parallel_size: 2
     disable_tqdm: false
+    logprobs: null
     val_override_config:
       temperature: 0.6
       top_p: 0.95
@@ -75,31 +79,32 @@ worker:
   ref:
     fsdp:
       enable_full_shard: true
-      enable_cpu_offload: true  # true: more CPU memory; false: more GPU memory
+      enable_cpu_offload: false  # true: more CPU memory; false: more GPU memory
       enable_rank0_init: true
     offload:
       offload_params: false
 
   reward:
     reward_type: batch
-    reward_function: ./examples/reward_function/math.py:compute_score
+    reward_function: ./examples/reward_function/emor3.py:compute_score
 
 trainer:
   total_epochs: 15
   max_steps: null
-  project_name: easy_r1
+  project_name: emoset_r1
+  # project_name: emoset_r1
   experiment_name: qwen2_5_7b_math_grpo
-  # logger: ["console", "wandb"]
-  logger: ["console"]
+  logger: ["console", "wandb"]
+  # logger: ["console"]
   nnodes: 1
   n_gpus_per_node: 8
   max_try_make_batch: 20  # -1 means no limit
-  val_freq: 5  # -1 to disable
+  val_freq: 1  # -1 to disable
   val_before_train: true
   val_only: false
   val_generations_to_log: 3
   save_freq: 5  # -1 to disable
-  save_limit: 3  # -1 to disable
+  save_limit: 7  # -1 to disable
   save_model_only: false
   save_checkpoint_path: null
   load_checkpoint_path: null
