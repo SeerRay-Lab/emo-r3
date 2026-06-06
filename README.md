@@ -68,3 +68,7 @@ Please kindly cite this paper in your publications if it helps your research:
   year={2026}
 }
 ```
+
+## Acknowledge
+
+Our repo is built on EasyR1. We thank the authors for sharing their code.
