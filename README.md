@@ -56,7 +56,7 @@ bash script/merge.sh
 ```
 
 
-## 🥳 Citation
+## Citation
 
 Please kindly cite this paper in your publications if it helps your research:
 
